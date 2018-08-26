@@ -6,7 +6,7 @@ find_package(Threads REQUIRED)
 
 # Cuda support
 find_package(CUDA REQUIRED)
-set(CUDA_NVCC_FLAGS "-arch=sm_52;-ccbin=/usr/bin/clang-4.0")
+set(CUDA_NVCC_FLAGS "-std=c++03;-arch=sm_52;-ccbin=/usr/bin/clang-4.0")
 
 # Enable ExternalProject CMake module
 include(ExternalProject)

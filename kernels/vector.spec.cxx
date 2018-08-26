@@ -12,8 +12,8 @@ void set_values(float *&x, float *&y, int N) {
     y[i] = 2.0f;
   }
 }
-TEST_F(Test, VectorTest) {
-  int N = 1024;//1<<20;
+TEST_F(Test, VectorAdd) {
+  int N = 1<<20;
   float *x;
   float *y;
 
