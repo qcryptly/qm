@@ -8,6 +8,9 @@ find_package(Threads REQUIRED)
 find_package(CUDA REQUIRED)
 set(CUDA_NVCC_FLAGS "-std=c++03;-arch=sm_52;-ccbin=/usr/bin/clang-4.0")
 
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+
 # Enable ExternalProject CMake module
 include(ExternalProject)
 
@@ -52,7 +55,10 @@ enable_testing()
 file(GLOB SRCS *spec.cxx)
 foreach(executablepath ${SRCS})
   GET_FILENAME_COMPONENT(executable ${executablepath} NAME_WE)
+  set(gllibpath "${CMAKE_CURRENT_SOURCE_DIR}/gl.${executable}")
 
+
+  # Cuda
   set(cudapath "${CMAKE_CURRENT_SOURCE_DIR}/${executable}.cu")
   message(STATUS "Cuda Path='${cudapath}'")
   cuda_add_library("${executable}.cuda" SHARED
@@ -66,17 +72,43 @@ foreach(executablepath ${SRCS})
   message(STATUS "Executable='${executable}'")
 
   add_executable("test${executable}" ${executablepath})
+  if(EXISTS "${gllibpath}.cxx")
+    message(STATUS "gllibpath=${gllibpath}")
+    # Make gllib
+    add_library(gllib SHARED
+      "${gllibpath}.cxx"
+    )
 
-  target_link_libraries(
-      "test${executable}"
-      "${executable}.cuda"
-      libgtest
-      stdc++
-      cudart_static
-      cuda
-      dl
-      rt
-  )
+    target_link_libraries(
+      gllib
+      GLEW
+      glfw
+      OpenGL
+    )
+
+    target_link_libraries(
+        "test${executable}"
+        gllib
+        "${executable}.cuda"
+        libgtest
+        stdc++
+        cudart_static
+        cuda
+        dl
+        rt
+    )
+  else()
+    target_link_libraries(
+        "test${executable}"
+        "${executable}.cuda"
+        libgtest
+        stdc++
+        cudart_static
+        cuda
+        dl
+        rt
+    )
+  endif()
 
   # Specify here the include directories exported by this library
   target_include_directories("test${executable}" PUBLIC

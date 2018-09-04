@@ -4,8 +4,26 @@
 #include <qmtest.hxx>
 
 #include "driver.h"
+#include "gl.driver.h"
 
 namespace QM {
+
+TEST_F(Test, OpenGLInterop) {
+  const char * name = "OpenGLInterop Test";
+  // How we should provision our kernel runs
+  KDriver::Device kdevice{};
+  GLDriver::Device gldevice{1024, 512, name};
+  /*device.setKernel([](){
+    // -- Should have no dependencies on cuda
+    float4 *dptr;
+    checkCudaErrors(cudaGraphicsMapResources(1, vbo_resource, 0));
+    size_t num_bytes;
+    checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void **)&dptr, &num_bytes,
+    launch_kernel(dptr, mesh_width, mesh_height, g_fAnim);
+    checkCudaErrors(cudaGraphicsUnmapResources(1, vbo_resource, 0));
+  });*/
+  //device.run();
+}
 
 TEST_F(Test, DeviceQuery) {
   // How we should provision our kernel runs
