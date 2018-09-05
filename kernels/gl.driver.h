@@ -15,11 +15,11 @@ namespace GLDriver {
     GLFWwindow* window_;
     const char * name_{};
     // Fxns
-    inline void initializeWindowCtx();
-    inline void createVBO();
+    inline void initializeWindowCtx(void(*)());
+    inline void createVBO(void(*)(GLuint&));
     void(*display_)();
   public:
-    explicit Device(int, int, const char *);
+    explicit Device(int, int, const char *, void(*)(), void(*)(GLuint&));
     // Set GL render
     void setDisplay(void(*)());
     void run();

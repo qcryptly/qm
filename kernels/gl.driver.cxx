@@ -3,7 +3,7 @@
 using namespace glm;
 namespace GLDriver {
 
-inline void Device::initializeWindowCtx() {
+inline void Device::initializeWindowCtx(void(*cudaSetGLDevice)()) {
   assert(glfwInit());
   glfwWindowHint(GLFW_SAMPLES, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -24,10 +24,10 @@ inline void Device::initializeWindowCtx() {
   glfwSetInputMode(window_, GLFW_STICKY_KEYS, GL_TRUE);
   glClearColor(1.0f,1.0f,1.0f,1.0f);
 
-  // cudaGLSetGLDevice(device_);
+  cudaSetGLDevice();
 }
 
-inline void Device::createVBO() {
+inline void Device::createVBO(void(*cudaBindBuffer)(GLuint&)) {
   GLuint vbo_;
   GLFWwindow* window_;
   glGenBuffers(1, &vbo_);
@@ -40,27 +40,52 @@ inline void Device::createVBO() {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   // register this buffer object with CUDA
-//  checkCudaErrors(cudaGraphicsGLRegisterBuffer(*vbo_res_, vbo_, cudaGraphicsMapFlagsWriteDiscard));
-
-  // SDK_CHECK_ERROR_GL();
+  cudaBindBuffer(vbo_);
 }
+
 Device::Device(
   int width,
   int height,
-  const char * name) :
+  const char * name,
+  void(*cudaSetGLDevice)(),
+  void(*cudaBindBuffer)(GLuint&)) :
   width_{width}, height_{height},
   name_{name} {
-    initializeWindowCtx();
-    createVBO();
+    initializeWindowCtx(cudaSetGLDevice);
+    createVBO(cudaBindBuffer);
 };
 void Device::setDisplay(void(*display)()) {
   display_ = display;
 }
-void Device::run() {
+void Device::run(void(*runCuda)(float)) {
+  float time = 0.0f;
   do{
     // Clear the screen. It's not mentioned before Tutorial 02, but it can cause flickering, so it's there nonetheless.
     glClear( GL_COLOR_BUFFER_BIT );
     // Draw nothing, see you in tutorial 2 !
+
+    // run CUDA kernel to generate vertex positions
+    runCuda(time);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // set view matrix
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glTranslatef(0.0, 0.0, translate_z);
+    glRotatef(rotate_x, 1.0, 0.0, 0.0);
+    glRotatef(rotate_y, 0.0, 1.0, 0.0);
+
+    // render from the vbo
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glVertexPointer(4, GL_FLOAT, 0, 0);
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glColor3f(1.0, 0.0, 0.0);
+    glDrawArrays(GL_POINTS, 0, 256 * 256);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
+    time += 0.01f;
 
     // Swap buffers
     glfwSwapBuffers(window_);
