@@ -17,13 +17,37 @@ __global__ void _default_kernel(float4 *pos, unsigned int width, unsigned int he
     float w = sinf(u*freq + time) * cosf(v*freq + time) * 0.5f;
 
     // write output vertex
-    pos[y*width+x] = make_float4(u, w, v, 1.0f);
+    pos[y*width+x] = make_float4(0.0,0.0,0.0,0.0);//u, w, v, 0.0f);
+}
+
+void checkCudaErrors(int cudaStatus) {
+  // switch(cudaStatus) {
+  //   case cudaSuccess:
+  //     std::cout << "[Cuda - Status] " << "Cuda success" << std::endl;
+  //     return;
+  //   case cudaErrorMemoryAllocation:
+  //     std::cout << "[Cuda - Status] " << "Cuda error memory allocation" << std::endl;
+  //     return;
+  //   case cudaErrorInvalidDevice:
+  //   std::cout << "[Cuda - Status] " << "Cuda error invalid device" << std::endl;
+  //     return;
+  //   case cudaErrorInvalidValue:
+  //   std::cout << "[Cuda - Status] " << "Cuda error invalid value" << std::endl;
+  //     return;
+  //   case cudaErrorInvalidResourceHandle:
+  //   std::cout << "[Cuda - Status] " << "Cuda error invalid resource handle" << std::endl;
+  //     return;
+  //   case cudaErrorUnknown:
+  //   std::cout << "[Cuda - Status] " << "Cuda error unknown" << std::endl;
+  //     return;
+  // }
+  // std::cout << "Unregistered error: " << cudaStatus << std::endl;
 }
 
 namespace KDriver {
     void defaultKernel (cudaGraphicsResource **vbo_res_, dim3 grid, dim3 block, float time) {
       float4 *dptr;
-      cudaGraphicsMapResources(1, vbo_res_, 0);
+      checkCudaErrors(cudaGraphicsMapResources(1, vbo_res_, 0));
       size_t num_bytes;
       cudaGraphicsResourceGetMappedPointer((void **)&dptr, &num_bytes,
         *vbo_res_);
@@ -43,12 +67,15 @@ namespace KDriver {
     }
 
     void Device::makeGLBuffer(unsigned& buffer) {
-      std::cout << "[Taylor making gl buffer]" << std::endl;
-      cudaGraphicsGLRegisterBuffer(&vbo_res_, buffer, cudaGraphicsMapFlagsWriteDiscard);
+      std::cout << "make gl buffer" << std::endl;
+      checkCudaErrors(cudaGraphicsGLRegisterBuffer(&vbo_res_, buffer, cudaGraphicsMapFlagsWriteDiscard));
+      std::cout << "end cuda graphics gl register buffer" << std::endl;
     }
 
     void Device::setGLDevice() {
-      cudaGLSetGLDevice(device_);
+      std::cout << "make gl device" << std::endl;
+      checkCudaErrors(cudaGLSetGLDevice(device_));
+      std::cout << "end cuda gl set gl device" << std::endl;
     }
 
     void Device::run(float time) {

@@ -12,19 +12,19 @@ namespace GLDriver {
   class Device {
     int width_{};
     int height_{};
-    int mesh_width_{};
-    int mesh_height_{};
+    int mesh_width_{256};
+    int mesh_height_{256};
     GLuint vbo_;
     GLFWwindow* window_;
     const char * name_{};
     // Fxns
-    inline void initializeWindowCtx();
+    inline void initializeWindowCtx(std::function<void()>);
     inline void createVBO(std::function<void(GLuint&)>);
     void(*display_)();
   public:
-    explicit Device(int, int, const char *, std::function<void(GLuint&)>);
+    explicit Device(int, int, const char *, std::function<void()>, std::function<void(GLuint&)>);
     // Set GL render
     void setDisplay(void(*)());
-    void run(void(*)(float));
+    void run(std::function<void(float)>);
   };
 }

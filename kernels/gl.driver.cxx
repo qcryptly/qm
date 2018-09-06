@@ -1,9 +1,9 @@
 #include "gl.driver.h"
-
+#include <iostream>
 using namespace glm;
 namespace GLDriver {
 
-inline void Device::initializeWindowCtx() {
+inline void Device::initializeWindowCtx(std::function<void()> setGLDevice) {
   assert(glfwInit());
   glfwWindowHint(GLFW_SAMPLES, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -23,14 +23,19 @@ inline void Device::initializeWindowCtx() {
 
   glfwSetInputMode(window_, GLFW_STICKY_KEYS, GL_TRUE);
   glClearColor(1.0f,1.0f,1.0f,1.0f);
+  setGLDevice();
 }
 
 inline void Device::createVBO(std::function<void(GLuint&)> makeGLBuffer) {
   glGenBuffers(1, &vbo_);
   glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+  std::cout << "[Create VBO - buffer value] " << vbo_ << std::endl;
 
   // initialize buffer object
   unsigned int size = mesh_width_ * mesh_height_ * 4 * sizeof(float);
+  std::cout << "[Create VBO - buffer size] " << size << std::endl;
+  std::cout << "[Create VBO - mesh_width_] " << mesh_width_ << std::endl;
+  std::cout << "[Create VBO - mesh_height_] " << mesh_height_ << std::endl;
   glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -43,33 +48,28 @@ Device::Device(
   int width,
   int height,
   const char * name,
+  std::function<void()> setGLDevice,
   std::function<void(GLuint&)> makeGLBuffer) :
   width_{width}, height_{height},
   name_{name} {
-    initializeWindowCtx();
+    initializeWindowCtx(setGLDevice);
     createVBO(makeGLBuffer);
 };
 void Device::setDisplay(void(*display)()) {
   display_ = display;
 }
-void Device::run(void(*runCuda)(float)) {
+void Device::run(std::function<void(float)> runCuda) {
   float time = 0.0f;
   do{
     // Clear the screen. It's not mentioned before Tutorial 02, but it can cause flickering, so it's there nonetheless.
-    glClear( GL_COLOR_BUFFER_BIT );
     // Draw nothing, see you in tutorial 2 !
 
     // run CUDA kernel to generate vertex positions
     runCuda(time);
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // set view matrix
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glTranslatef(0.0, 0.0, -3.0);
-    glRotatef(0.0, 1.0, 0.0, 0.0);
-    glRotatef(0.0, 0.0, 1.0, 0.0);
 
     // render from the vbo
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);

@@ -12,11 +12,18 @@ TEST_F(Test, OpenGLInterop) {
   const char * name = "OpenGLInterop Test";
   // How we should provision our kernel runs
   KDriver::Device kdevice{};
-  kdevice.setGLDevice();
+  kdevice.setDefaultKernel();
+  std::function<void()> setGLDevice = [&kdevice]() {
+    kdevice.setGLDevice();
+  };
   std::function<void(GLuint&)> makeGLBuffer = [&kdevice](GLuint& device){
     kdevice.makeGLBuffer(device);
   };
-  GLDriver::Device gldevice{1024, 512, name, makeGLBuffer};
+  std::function<void(float)> runCuda = [&kdevice](float time){
+    kdevice.run(time);
+  };
+  GLDriver::Device gldevice{1024, 512, name, setGLDevice, makeGLBuffer};
+  gldevice.run(runCuda);
 }
 
 TEST_F(Test, DeviceQuery) {
