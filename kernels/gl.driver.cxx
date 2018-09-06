@@ -3,7 +3,7 @@
 using namespace glm;
 namespace GLDriver {
 
-inline void Device::initializeWindowCtx(void(*cudaSetGLDevice)()) {
+inline void Device::initializeWindowCtx() {
   assert(glfwInit());
   glfwWindowHint(GLFW_SAMPLES, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -23,13 +23,9 @@ inline void Device::initializeWindowCtx(void(*cudaSetGLDevice)()) {
 
   glfwSetInputMode(window_, GLFW_STICKY_KEYS, GL_TRUE);
   glClearColor(1.0f,1.0f,1.0f,1.0f);
-
-  cudaSetGLDevice();
 }
 
-inline void Device::createVBO(void(*cudaBindBuffer)(GLuint&)) {
-  GLuint vbo_;
-  GLFWwindow* window_;
+inline void Device::createVBO(std::function<void(GLuint&)> makeGLBuffer) {
   glGenBuffers(1, &vbo_);
   glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 
@@ -40,19 +36,18 @@ inline void Device::createVBO(void(*cudaBindBuffer)(GLuint&)) {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   // register this buffer object with CUDA
-  cudaBindBuffer(vbo_);
+  makeGLBuffer(vbo_);
 }
 
 Device::Device(
   int width,
   int height,
   const char * name,
-  void(*cudaSetGLDevice)(),
-  void(*cudaBindBuffer)(GLuint&)) :
+  std::function<void(GLuint&)> makeGLBuffer) :
   width_{width}, height_{height},
   name_{name} {
-    initializeWindowCtx(cudaSetGLDevice);
-    createVBO(cudaBindBuffer);
+    initializeWindowCtx();
+    createVBO(makeGLBuffer);
 };
 void Device::setDisplay(void(*display)()) {
   display_ = display;
@@ -72,12 +67,12 @@ void Device::run(void(*runCuda)(float)) {
     // set view matrix
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glTranslatef(0.0, 0.0, translate_z);
-    glRotatef(rotate_x, 1.0, 0.0, 0.0);
-    glRotatef(rotate_y, 0.0, 1.0, 0.0);
+    glTranslatef(0.0, 0.0, -3.0);
+    glRotatef(0.0, 1.0, 0.0, 0.0);
+    glRotatef(0.0, 0.0, 1.0, 0.0);
 
     // render from the vbo
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
     glVertexPointer(4, GL_FLOAT, 0, 0);
 
     glEnableClientState(GL_VERTEX_ARRAY);

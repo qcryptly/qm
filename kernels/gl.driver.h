@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -12,16 +14,17 @@ namespace GLDriver {
     int height_{};
     int mesh_width_{};
     int mesh_height_{};
+    GLuint vbo_;
     GLFWwindow* window_;
     const char * name_{};
     // Fxns
-    inline void initializeWindowCtx(void(*)());
-    inline void createVBO(void(*)(GLuint&));
+    inline void initializeWindowCtx();
+    inline void createVBO(std::function<void(GLuint&)>);
     void(*display_)();
   public:
-    explicit Device(int, int, const char *, void(*)(), void(*)(GLuint&));
+    explicit Device(int, int, const char *, std::function<void(GLuint&)>);
     // Set GL render
     void setDisplay(void(*)());
-    void run();
+    void run(void(*)(float));
   };
 }

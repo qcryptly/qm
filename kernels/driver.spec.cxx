@@ -3,8 +3,8 @@
 #include <iostream>
 #include <qmtest.hxx>
 
-#include "driver.h"
 #include "gl.driver.h"
+#include "driver.h"
 
 namespace QM {
 
@@ -12,7 +12,11 @@ TEST_F(Test, OpenGLInterop) {
   const char * name = "OpenGLInterop Test";
   // How we should provision our kernel runs
   KDriver::Device kdevice{};
-  GLDriver::Device gldevice{1024, 512, name, kdevice.setGLDevice, kdevice.makeGLBuffer};
+  kdevice.setGLDevice();
+  std::function<void(GLuint&)> makeGLBuffer = [&kdevice](GLuint& device){
+    kdevice.makeGLBuffer(device);
+  };
+  GLDriver::Device gldevice{1024, 512, name, makeGLBuffer};
 }
 
 TEST_F(Test, DeviceQuery) {

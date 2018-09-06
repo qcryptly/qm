@@ -1,4 +1,5 @@
 #include "driver.h"
+#include <iostream>
 
 __global__ void _default_kernel(float4 *pos, unsigned int width, unsigned int height, float time)
 {
@@ -42,6 +43,7 @@ namespace KDriver {
     }
 
     void Device::makeGLBuffer(unsigned& buffer) {
+      std::cout << "[Taylor making gl buffer]" << std::endl;
       cudaGraphicsGLRegisterBuffer(&vbo_res_, buffer, cudaGraphicsMapFlagsWriteDiscard);
     }
 
