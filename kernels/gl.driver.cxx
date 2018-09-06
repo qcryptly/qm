@@ -70,6 +70,10 @@ void Device::run(std::function<void(float)> runCuda) {
 
     // set view matrix
     glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glTranslatef(0.0, 0.0, -3.0);
+    glRotatef(0.0, 1.0, 0.0, 0.0);
+    glRotatef(0.0, 0.0, 1.0, 0.0);
 
     // render from the vbo
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
